@@ -1,38 +1,45 @@
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
+import { API_ENDPOINT } from "../Utilts/constant.js";
+import axios from "axios";
 
 function Register() {
   const [fullName, setfullName] = useState("");
   const [email, setemail] = useState("");
   const [password, setpassword] = useState("");
   const navigate = useNavigate();
-  const api = import.meta.env.VITE_API_ENDPOINT;
 
-  function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    fetch(`${api}/register`, {
-      method: "POST",
-      body: JSON.stringify({ fullName, email, password }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        if (data.success == true) {
-          navigate("/home");
+    const user = {
+      fullName,
+      email,
+      password,
+    };
 
-          setfullName("");
-          setemail("");
-          setpassword("");
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
+    try {
+      const res = await axios.post(`${API_ENDPOINT}/register`, user, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
       });
-  }
+
+      console.log(res.data);
+      if (res.data.success === true) {
+        toast.success("Login Successful");
+        navigate("/");
+        setfullName("");
+        setemail("");
+        setpassword("");
+      }
+    } catch (error) {
+      toast.error("Failed to login");
+      console.log(error);
+    }
+  };
 
   return (
     <div className="absolute overflow-hidden h-full w-full ">

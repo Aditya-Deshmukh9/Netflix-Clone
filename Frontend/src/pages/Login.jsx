@@ -1,46 +1,45 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { API_ENDPOINT } from "../Utilts/constant.js";
+import { setUser } from "../Redux/userSlice.js";
 
 function Login() {
   const [email, setemail] = useState("");
   const [password, setpassword] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const api = import.meta.env.VITE_API_ENDPOINT;
-
-  function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const user = { email, password };
+    const user = {
+      email,
+      password,
+    };
 
-    axios
-      .post(
-        `${api}/login`,
-        user,
-        {
-          email,
-          password,
+    try {
+      const res = await axios.post(`${API_ENDPOINT}/login`, user, {
+        headers: {
+          "Content-Type": "application/json",
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      )
-      .then((response) => {
-        console.log(response.data);
-        if (response.data.success === true) {
-          navigate("/home");
-          setemail("");
-          setpassword("");
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
+        withCredentials: true,
       });
-  }
+      console.log(res.data);
+      if (res.data.success === true) {
+        dispatch(setUser(res.data.user));
+        toast.success(res.data.message);
+        // navigate("/home");
+        setemail("");
+        setpassword("");
+      }
+    } catch (error) {
+      toast.error(res.data.message);
+      console.log(error);
+    }
+  };
 
   return (
     <div className="absolute overflow-hidden h-full w-full ">
@@ -62,6 +61,7 @@ function Login() {
             onChange={(e) => setemail(e.target.value)}
             placeholder="Email"
           />
+
           <input
             className="px-4 py-3 mt-6 rounded-md border border-gray-400 text-white  bg-black/85 "
             type="password"
